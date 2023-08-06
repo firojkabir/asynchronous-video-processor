@@ -1,0 +1,16 @@
+{
+	"name": "localstack-sd",
+	"version": "1.0.0",
+	"description": "",
+	"main": "index.js",
+	"scripts": {
+		"start": "node app.js"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"dependencies": {
+		"aws-sdk": "^2.1413.0",
+		"sqs-consumer": "^5.8.0"
+	}
+}

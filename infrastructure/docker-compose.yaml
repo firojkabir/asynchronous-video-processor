@@ -1,0 +1,43 @@
+version: "3.3"
+
+services:
+  localstack:
+    image: localstack/localstack:0.12.15
+    container_name: localstack
+    environment:
+      - DEFAULT_REGION=eu-west-1
+      - SERVICES=sqs,sns
+      - PORT_WEB_UI=8400
+      - DEBUG=1
+    ports:
+      - "4566-4599:4566-4599"
+      - "8400:8400"
+    volumes:
+      - ./init_aws.sh:/docker-entrypoint-initaws.d/init_aws.sh
+      - ./main.tf:/docker-entrypoint-initaws.d/main.tf
+    healthcheck:
+      test: awslocal sns list-subscriptions | grep "sd-processor"
+      interval: 3s
+      timeout: 10s
+      retries: 100
+
+  sd-processor:
+    build: ../sd-processor
+    container_name: sd-processor
+    environment:
+      - AWS_ENDPOINT=http://localstack:4566
+      - AWS_REGION=eu-west-1
+      - TOPIC_ARN_VIDEO_PROCESSED=arn:aws:sns:eu-west-1:000000000000:video-processed
+      - TOPIC_ARN_START_HD=arn:aws:sns:eu-west-1:000000000000:start-hd
+      - SQS_SD_PROCESSOR=http://localstack:4566/queue/sd-processor
+
+    restart: unless-stopped
+    links:
+      - localstack
+    depends_on:
+      localstack:
+        condition: service_healthy
+
+  # hd-processor:
+  # fhd-processor:
+  # thumbnail-processor:
